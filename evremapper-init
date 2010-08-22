@@ -1,0 +1,34 @@
+#!/bin/sh
+
+### BEGIN INIT INFO
+# Provides:          evremapper
+# Required-Start:    $local_fs
+# Required-Stop:
+# Should-Start:
+# Should-Stop:
+# Default-Start:        2 3 4 5
+# Default-Stop:         0 1 6
+# Short-Description:    pi.altoros.corp event remapper
+# Description:          pi.altoros.corp event remapper
+
+### END INIT INFO
+
+cmdline="daemon -N -n repeater -X /opt/evrepeater/run-pi-mapper.rb"
+
+case $1 in
+    start)
+        $cmdline
+        ;;
+    stop)
+        $cmdline --stop
+        ;;
+    status)
+        $cmdline -v --running
+        ;;
+    restart)
+        $cmdline --restart
+        ;;
+    *)
+        echo "Usage: /etc/init.d/evremapper {start|stop|restart|status}" >&2
+        exit 3
+esac

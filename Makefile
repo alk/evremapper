@@ -13,6 +13,7 @@ clean:
 
 install:
 	mkdir -p /opt/evrepeater
-	cp -rl repeater run-pi-mapper.rb /opt/evrepeater
+	cp -frl repeater run-pi-mapper.rb /opt/evrepeater
+	cp -frl evremapper-init /etc/init.d/evremapper
 
 .PHONY: all clean install
