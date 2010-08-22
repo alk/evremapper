@@ -61,20 +61,12 @@ void create_uinput()
 		exit(1);
 	}
 
-	char bits[KEY_CNT/8];
-
-	xioctl(source_evdev_fd, EVIOCGBIT(EV_KEY, sizeof(bits)), bits);
-
 	for (int i = 0; i < KEY_CNT; i++) {
-		if (get_bit(bits, i)) {
-			xioctl_int(uinput_fd, UI_SET_KEYBIT, i);
-		}
+		xioctl_int(uinput_fd, UI_SET_KEYBIT, i);
 	}
 
-	xioctl_int(uinput_fd, UI_SET_MSCBIT, MSC_SCAN);
 	xioctl_int(uinput_fd, UI_SET_EVBIT, EV_SYN);
 	xioctl_int(uinput_fd, UI_SET_EVBIT, EV_KEY);
-	xioctl_int(uinput_fd, UI_SET_EVBIT, EV_MSC);
 }
 
 static
@@ -243,7 +235,7 @@ int main(int argc, char **argv)
 	int verbose = 0;
 	if (argc >= 2 && strcmp(argv[1], "-v") == 0) {
 		argv++;
-		argc++;
+		argc--;
 		verbose = 1;
 	}
 	source_evdev_fd = open(argv[1], O_RDONLY);
