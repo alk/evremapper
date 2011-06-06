@@ -17,6 +17,7 @@ cmdline="daemon -N -n repeater -X /opt/evrepeater/run-pi-mapper.rb"
 
 case $1 in
     start)
+        ln -s /dev/uinput /dev/input/uinput
         $cmdline
         ;;
     stop)
