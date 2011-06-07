@@ -21,7 +21,7 @@ def path_to_dev(path)
   "/dev/input/event#{$1}"
 end
 
-argv = [File.join(File.dirname($0), 'repeater')]
+argv = [File.join(File.dirname($0), 'repeater'), *ARGV]
 
 argv << path_to_dev(File.dirname(keyboard_name))
 
