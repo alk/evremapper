@@ -162,7 +162,7 @@ void write_event(struct input_event *ev)
 	write(uinput_fd, ev, sizeof(*ev));
 }
 
-#define MAP_SIZE 64
+#define MAP_SIZE 128
 uint32_t interesting_list_cnt;
 uint16_t interesting_list[MAP_SIZE];
 
@@ -175,19 +175,19 @@ uint32_t interesting_keys[KEY_CNT/32];
 static
 uint16_t key_hash(uint16_t k)
 {
-	return (k % 255) % MAP_SIZE;
+	return ((int)k + 253) % MAP_SIZE;
 }
 
 static
 void init_interesting_keys(void)
 {
 #define TR(a,b) do { \
-		set_bit(interesting_keys, a, 1);	\
-		uint16_t hash = key_hash(a);		\
-		if (fn_keys_map[hash])			\
-			abort();			\
+		set_bit(interesting_keys, a, 1);	      \
+		uint16_t hash = key_hash(a);		      \
+		if (fn_keys_map[hash])			      \
+			assert(!"duplicate:" #a);		      \
 		interesting_list[interesting_list_cnt++] = a; \
-		fn_keys_map[hash] = b;			\
+		fn_keys_map[hash] = b;			      \
 	} while (0)
 
 	TR(KEY_BACKSPACE, KEY_DELETE);
@@ -208,35 +208,20 @@ void init_interesting_keys(void)
 	TR(KEY_DOWN, KEY_PAGEDOWN);
 	TR(KEY_LEFT, KEY_HOME);
 	TR(KEY_RIGHT, KEY_END);
+	TR(KEY_ESC, KEY_CAPSLOCK);
 
 #undef TR
 }
 
 static
-int alt_pressed;
-
-static
-int meta_pressed;
-
-static
-int alt_eaten;
-
-static
-int meta_eaten;
-
-static
-int fn_pressed;
+int fn_pressed = 0;
 
 static
 uint32_t interesting_on[KEY_CNT/32];
 static
 uint32_t interesting_off[KEY_CNT/32];
 
-/* #define FN_KEY_CODE KEY_LEFTMETA */
-/*
- * #define NEW_LEFTMETA KEY_LEFTALT
- * #define NEW_LEFTALT 0x56
- */
+#define FN_KEY_CODE KEY_CAPSLOCK
 
 int translate_event(struct input_event *ev)
 {
@@ -249,71 +234,14 @@ int translate_event(struct input_event *ev)
 	}
 
 	uint16_t code = ev->code;
-	int i;
-	struct input_event ev2;
 
 	switch (code) {
-	/*
-         * case NEW_LEFTALT:
-	 * 	code = ev->code = KEY_LEFTALT;
-	 * 	break;
-	 * case NEW_LEFTMETA:
-	 * 	code = ev->code = KEY_LEFTMETA;
-	 * 	break;
-         */
-	/*
-         * case KEY_BRIGHTNESSDOWN:
-	 * case KEY_BRIGHTNESSUP:
-	 * case KEY_VOLUMEUP:
-	 * case KEY_VOLUMEDOWN:
-	 * 	return 0;
-         */
-	case KEY_LEFTALT:
-	case KEY_LEFTMETA:
-	/* case FN_KEY_CODE: */
+	case FN_KEY_CODE:
 		if (ev->value == 2)
 			return 0;
-		if (code == KEY_LEFTMETA)
-			alt_pressed = ev->value;
-		else
-			meta_pressed = ev->value;
-
-		int old_fn_pressed = fn_pressed;
-
-		fn_pressed = alt_pressed && meta_pressed;
-		/* un-press other key if fn event is triggered */
-		if (fn_pressed) {
-			assert(!old_fn_pressed);
-			if (verbose)
-				fputs("Unpressing other fn combo key\n", stdout);
-			ev2 = *ev;
-			ev2.code = (code == KEY_LEFTMETA) ? KEY_LEFTALT : KEY_LEFTMETA;
-			ev2.value = 0;
-			write_event(&ev2);
-			alt_eaten = meta_eaten = 1;
-		}
-
-		if (old_fn_pressed == fn_pressed) {
-			if (ev->value != 1) {
-				if (code == KEY_LEFTALT && alt_eaten) {
-					if (verbose)
-						fputs("Eating left alt release or repeat\n", stdout);
-					if (ev->value == 0)
-						alt_eaten = 0;
-					return 0;
-				}
-				if (code == KEY_LEFTMETA && meta_eaten) {
-					if (verbose)
-						fputs("Eating left meta release or repeat\n", stdout);
-					if (ev->value == 0)
-						meta_eaten = 0;
-					return 0;
-				}
-			}
-			break;
-		}
-
-		for (i=0;interesting_list[i];i++) {
+		fn_pressed = ev->value;
+		struct input_event ev2;
+		for (int i=0;interesting_list[i];i++) {
 			uint16_t k = interesting_list[i];
 			if (get_bit(interesting_on, k)) {
 				if (verbose) {
@@ -355,7 +283,7 @@ int translate_event(struct input_event *ev)
 			set_bit(interesting_on, code, 1);
 		}
 		if (fn_pressed)
-			ev->code = fn_keys_map[key_hash(code)];
+			ev->code = code = fn_keys_map[key_hash(code)];
 	}
 
 	return 1;
