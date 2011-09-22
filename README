@@ -1,4 +1,4 @@
-This thing unbreaks keyboard on my new cheap laptop by remapping
-certain keys via user-space linux input driver. It is quick and dirty,
-but seems to be working. The plan is to turn it into something more
+This thing improves keyboard layou on my laptop by remapping certain
+keys via user-space linux input driver. It is quick and dirty, but
+seems to be working. The plan is to turn it into something more
 configurable and generic later.
