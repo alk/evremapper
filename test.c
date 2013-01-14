@@ -13,7 +13,7 @@
 void pp_timeval(struct timeval *tv)
 {
 	double epoch = tv->tv_sec + tv->tv_usec * 1E-6;
-	printf("%g", epoch);
+	printf("%f", epoch);
 }
 
 char *events[EV_CNT] = {
