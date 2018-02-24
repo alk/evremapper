@@ -354,7 +354,12 @@ int main(int argc, char **argv)
 
 	struct input_event ev;
 	while (1) {
-		read_all(source_evdev_fd, &ev, sizeof(ev));
+		memset(&ev, 0, sizeof(ev));
+		int rv = read_all(source_evdev_fd, &ev, sizeof(ev));
+		if (rv < 0) {
+			perror("read source event");
+			exit(1);
+		}
 		if (!translate_event(&ev))
 			continue;
 		write_event(&ev);
