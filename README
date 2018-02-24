@@ -1,4 +1,58 @@
-This thing improves keyboard layou on my laptop by remapping certain
+This thing improves keyboard layout on my laptop by remapping certain
 keys via user-space linux input driver. It is quick and dirty, but
 seems to be working. The plan is to turn it into something more
 configurable and generic later.
+
+It intercepts input events from given device and adds or remaps some
+keys or key combinations.
+
+At the moment, it sets up capslock key as "fn" character. Similar to
+Chromebooks. Regular capslock feature is accessible via capslock-Esc.
+
+The following fn-combinations are handled (inpsired by Macs and
+Chromebooks):
+
+Fn + KEY_BACKSPACE -> KEY_DELETE
+Fn + KEY_ENTER -> KEY_INSERT
+Fn + KEY_F1 -> KEY_BRIGHTNESSDOWN
+Fn + KEY_F2 -> KEY_BRIGHTNESSUP
+Fn + KEY_F3 -> KEY_SCALE
+Fn + KEY_F4 -> KEY_DASHBOARD
+Fn + KEY_F5 -> KEY_KBDILLUMDOWN
+Fn + KEY_F6 -> KEY_KBDILLUMUP
+Fn + KEY_F7 -> KEY_PREVIOUSSONG
+Fn + KEY_F8 -> KEY_PLAYPAUSE
+Fn + KEY_F9 -> KEY_NEXTSONG
+Fn + KEY_F10 -> KEY_MUTE
+Fn + KEY_F11 -> KEY_VOLUMEDOWN
+Fn + KEY_F12 -> KEY_VOLUMEUP
+Fn + KEY_UP -> KEY_PAGEUP
+Fn + KEY_DOWN -> KEY_PAGEDOWN
+Fn + KEY_LEFT -> KEY_HOME
+Fn + KEY_RIGHT -> KEY_END
+Fn + KEY_ESC -> KEY_CAPSLOCK
+
+
+-----------
+Integration with udev & systemd
+-----------
+
+Here is how it can be set up to automagically wrap all USB keyboards,
+handling hot plugs and unplugs.
+
+First create systemd unit file in
+/etc/systemd/system/kbd-attach@.service. The @ character makes it
+"instantiated" unit file. I.e. a kind of template for real units. And
+place the following config over there:
+
+[Service]
+Type=simple
+ExecStart=/opt/evrepeater/repeater "/dev/input/%I"
+
+And add the following to udev rules (on my system I created
+/etc/udev/rules.d/80-kbd-attach.rules):
+
+ACTION=="add", SUBSYSTEM=="input", KERNEL!="input*", ENV{ID_INPUT_KEYBOARD}=="1", ENV{ID_BUS}=="usb", TAG+="systemd", ENV{SYSTEMD_WANTS}="kbd-attach@$kernel.service"
+
+Each plugged keyboard device will now have udev trigger systemd
+service for kbd-attach@eventXX which will start repeater.
