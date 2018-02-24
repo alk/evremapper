@@ -1,5 +1,5 @@
 This thing improves keyboard layout on my laptop by remapping certain
-keys via user-space linux input driver. It is quick and dirty, but
+keys via user-space Linux input driver. It is quick and dirty, but
 seems to be working. The plan is to turn it into something more
 configurable and generic later.
 
@@ -9,7 +9,7 @@ keys or key combinations.
 At the moment, it sets up capslock key as "fn" character. Similar to
 Chromebooks. Regular capslock feature is accessible via capslock-Esc.
 
-The following fn-combinations are handled (inpsired by Macs and
+The following fn-combinations are handled (inspired by Macs and
 Chromebooks):
 
 Fn + KEY_BACKSPACE -> KEY_DELETE
